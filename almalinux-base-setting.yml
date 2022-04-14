@@ -1,0 +1,111 @@
+---
+- hosts: Linux_servers
+
+  tasks: 
+
+#### set timezone/locale/keymap ####
+  - name: set timezone
+    timezone:
+      name: "{{local_timezone}}"
+  
+  - name: set locale
+    command: localectl set-locale LANG={{local_locale}}
+
+  - name: set keymap
+    command: localectl set-keymap {{locale_keymap}}
+
+##### set hostname #####
+  - name: set hostname
+    hostname:
+      name: "{{linux_hostname}}"
+
+##### yum update #####
+  - name: yum update
+    yum: 
+      name: "{{item}}"
+      state: latest
+      update_cache: yes
+    loop:
+      - "epel-release"
+      - "*"
+
+##### create user for operation #####
+  - name: create operation users
+    user: 
+      name: "{{item.key}}"
+      password: "{{item.value.password}}"
+      groups: "{{item.value.groups}}"
+      shell: /bin/bash
+      home: "/home/{{item.key}}"
+      state: present
+    loop: "{{user_newusers|dict2items}}"
+
+##### disable SELinux #####
+  - name: install libselinux-python
+    shell: 'dnf -y module install libselinux-python:2.8/common'
+
+  - name: Disable SELinux
+    selinux:
+      state: disabled
+
+##### disable IPv6 #####
+  - name: IPv6 disabled
+    sysctl:
+      state: present
+      name: "{{item}}"
+      value: "1"
+      sysctl_set: no
+      reload: no
+    with_items:
+      - net.ipv6.conf.all.disable_ipv6
+      - net.ipv6.conf.default.disable_ipv6
+      - net.ipv6.conf.lo.disable_ipv6
+
+##### install module #####
+  - name: install module
+    yum: 
+      name: "{{item}}"
+      state: present
+    loop: "{{install_packages_list}}"
+ 
+##### set module enable on systemd #####
+  - name: systemd enable
+    systemd:
+      name: "{{item}}"
+      enabled: yes
+    loop: "{{enabled_packages_list}}"
+
+##### set module disable on systemd #####
+  - name: systemd disable
+    systemd:
+      name: "{{item}}"
+      enabled: no
+    loop: "{{disabled_packages_list}}"
+
+##### set snmp (snmpd.conf) #####
+  - name: snmpd.conf file copy
+    template:
+      src: ./files/snmpd.conf.j2
+      dest: /etc/snmp/snmpd.conf
+      owner: root
+      group: root
+      mode: 0600
+
+##### set ntp (chrony.conf) #####
+  - name: chrony.conf file copy
+    template:
+      src: ./files/chrony.conf.j2
+      dest: /etc/chrony.conf
+      owner: root
+      group: root
+      mode: 0644
+
+##### restart host #####
+  post_tasks:
+    - name: Restart target host
+      reboot:
+    
+    - name: Waiting connection
+      wait_for_connection:
+        delay: 30
+        timeout: 120

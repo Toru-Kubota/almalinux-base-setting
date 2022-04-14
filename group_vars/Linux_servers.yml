@@ -1,0 +1,34 @@
+---
+##### set basic parameter #####
+local_timezone: "Asia/Tokyo"
+local_locale: "ja_JP.utf8"
+locale_keymap: "jp"
+linux_hostname: Linux-hostname
+
+##### set user name for operation #####
+user_newusers:
+  opuser01:
+    password: "{{ 'opuser01' |password_hash('sha512') }}"
+    groups: wheel
+
+##### set install module name #####
+install_packages_list:
+  - epel-release
+  - net-snmp
+  - net-snmp-utils
+
+##### set enable module name #####
+enabled_packages_list:
+  - snmpd
+  - chronyd
+  - rsyslog
+
+##### set disable module name #####
+disabled_packages_list:
+  - firewalld
+
+##### set snmp commuity name #####
+snmp_community_name: "public"
+
+##### set ntp server #####
+ntp_time_server: "ntp.nict.jp"
