@@ -1,6 +1,7 @@
 ---
 - hosts: Linux_servers
-
+  become: yes
+  
   tasks: 
 
 #### set timezone/locale/keymap ####
