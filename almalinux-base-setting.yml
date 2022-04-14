@@ -1,8 +1,25 @@
 ---
 - hosts: Linux_servers
   become: yes
-  
+
   tasks: 
+
+##### yum update #####
+  - name: yum update
+    yum: 
+      name: "{{item}}"
+      state: latest
+      update_cache: yes
+    loop:
+      - "epel-release"
+      - "*"
+
+##### install module #####
+  - name: install module
+    yum: 
+      name: "{{item}}"
+      state: present
+    loop: "{{install_packages_list | default([], true) }}"
 
 #### set timezone/locale/keymap ####
   - name: set timezone
@@ -19,16 +36,6 @@
   - name: set hostname
     hostname:
       name: "{{linux_hostname}}"
-
-##### yum update #####
-  - name: yum update
-    yum: 
-      name: "{{item}}"
-      state: latest
-      update_cache: yes
-    loop:
-      - "epel-release"
-      - "*"
 
 ##### create user for operation #####
   - name: create operation users
@@ -61,27 +68,20 @@
       - net.ipv6.conf.all.disable_ipv6
       - net.ipv6.conf.default.disable_ipv6
       - net.ipv6.conf.lo.disable_ipv6
-
-##### install module #####
-  - name: install module
-    yum: 
-      name: "{{item}}"
-      state: present
-    loop: "{{install_packages_list}}"
  
 ##### set module enable on systemd #####
   - name: systemd enable
     systemd:
       name: "{{item}}"
       enabled: yes
-    loop: "{{enabled_packages_list}}"
+    loop: "{{enabled_packages_list | default([], true) }}"
 
 ##### set module disable on systemd #####
   - name: systemd disable
     systemd:
       name: "{{item}}"
       enabled: no
-    loop: "{{disabled_packages_list}}"
+    loop: "{{disabled_packages_list | default([], true) }}"
 
 ##### set snmp (snmpd.conf) #####
   - name: snmpd.conf file copy

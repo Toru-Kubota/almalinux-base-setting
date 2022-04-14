@@ -16,6 +16,7 @@ install_packages_list:
   - epel-release
   - net-snmp
   - net-snmp-utils
+  - glibc-langpack-ja
 
 ##### set enable module name #####
 enabled_packages_list:

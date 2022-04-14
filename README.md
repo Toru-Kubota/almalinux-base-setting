@@ -1,13 +1,13 @@
 ## Features
 Initial setting for AlmaLinux 8
 
+* yum update
+* install module
 * set timezone/locale/keymap
 * set hostname
-* yum update
 * create user for operation
 * disable SELinux
 * disable IPv6
-* install module
 * set module enable on systemd
 * set module disable on systemd
 * set snmp (snmpd.conf)
